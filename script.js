@@ -1,64 +1,72 @@
-class Note {
-    constructor(title, content) {
+class Todo {
+    constructor(title) {
         this.title = title;
-        this.content = content;
+        this.completed = false;
         this.date = new Date().toLocaleString();
     }
 }
 
-class NotesApp {
+class TodoApp {
     constructor() {
-        this.notes = JSON.parse(localStorage.getItem('notes')) || [];
-        this.noteTitle = document.getElementById('noteTitle');
-        this.noteContent = document.getElementById('noteContent');
-        this.saveButton = document.getElementById('saveNote');
-        this.notesList = document.getElementById('notesList');
+        this.todos = JSON.parse(localStorage.getItem('todos')) || [];
+        this.todoTitle = document.getElementById('todoTitle');
+        this.saveButton = document.getElementById('saveTodo');
+        this.todoList = document.getElementById('todoList');
         
-        this.saveButton.addEventListener('click', () => this.addNote());
-        this.displayNotes();
+        this.saveButton.addEventListener('click', () => this.addTodo());
+        this.todoTitle.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.addTodo();
+        });
+        this.displayTodos();
     }
 
-    addNote() {
-        if (this.noteTitle.value.trim() === '' || this.noteContent.value.trim() === '') {
-            alert('Please fill in both title and content!');
+    addTodo() {
+        if (this.todoTitle.value.trim() === '') {
+            alert('Please enter a task!');
             return;
         }
 
-        const newNote = new Note(this.noteTitle.value, this.noteContent.value);
-        this.notes.push(newNote);
+        const newTodo = new Todo(this.todoTitle.value);
+        this.todos.push(newTodo);
         this.saveToLocalStorage();
-        this.displayNotes();
+        this.displayTodos();
         
-        // Clear input fields
-        this.noteTitle.value = '';
-        this.noteContent.value = '';
+        // Clear input field
+        this.todoTitle.value = '';
     }
 
-    deleteNote(index) {
-        this.notes.splice(index, 1);
+    toggleTodo(index) {
+        this.todos[index].completed = !this.todos[index].completed;
         this.saveToLocalStorage();
-        this.displayNotes();
+        this.displayTodos();
+    }
+
+    deleteTodo(index) {
+        this.todos.splice(index, 1);
+        this.saveToLocalStorage();
+        this.displayTodos();
     }
 
     saveToLocalStorage() {
-        localStorage.setItem('notes', JSON.stringify(this.notes));
+        localStorage.setItem('todos', JSON.stringify(this.todos));
     }
 
-    displayNotes() {
-        this.notesList.innerHTML = '';
-        this.notes.forEach((note, index) => {
-            const noteCard = document.createElement('div');
-            noteCard.className = 'note-card';
-            noteCard.innerHTML = `
-                <h3>${note.title}</h3>
-                <p>${note.content}</p>
-                <small>${note.date}</small>
-                <button class="delete-btn" onclick="app.deleteNote(${index})">Delete</button>
+    displayTodos() {
+        this.todoList.innerHTML = '';
+        this.todos.forEach((todo, index) => {
+            const todoCard = document.createElement('div');
+            todoCard.className = `todo-card ${todo.completed ? 'completed' : ''}`;
+            todoCard.innerHTML = `
+                <h3>${todo.title}</h3>
+                <div class="todo-actions">
+                    <button onclick="app.toggleTodo(${index})">${todo.completed ? 'Undo' : 'Complete'}</button>
+                    <button class="delete-btn" onclick="app.deleteTodo(${index})">Delete</button>
+                </div>
             `;
-            this.notesList.appendChild(noteCard);
+            this.todoList.appendChild(todoCard);
         });
     }
 }
 
 // Initialize the app
-const app = new NotesApp();
+const app = new TodoApp();
